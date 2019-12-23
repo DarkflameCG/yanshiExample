@@ -7,6 +7,7 @@ import java.awt.Font;
 import java.awt.GridLayout;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.math.BigDecimal;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 
@@ -42,6 +43,9 @@ public class JXQTest extends JFrame implements ActionListener{
 	private Timer timer;
 	private SimpleDateFormat sdf;
 	private Date date;
+	
+	//标志位
+	private boolean flag;
 	
 	public JXQTest() {
 		this.setTitle("计算器");
@@ -112,12 +116,6 @@ public class JXQTest extends JFrame implements ActionListener{
 		//第一步：准备一个空的结果
 		String result = "";
 		String old = showText.getText();
-		//加个判断，判断old里有没有字符  .
-		if(old.indexOf(".")>0) {
-			System.out.println("这是浮点型");
-		}else {
-			System.out.println("这是整型");
-		}
 		
 		//第二步：把字符串转化成对应的表达式  ScritptEngine
 		//准备工作，找一个engine对象的管理类  原因：engine是一个接口
@@ -128,9 +126,18 @@ public class JXQTest extends JFrame implements ActionListener{
 		//第四步：关于类型不同的解决方法
 		//知识点
 		//System.out.println(0.0/0.0);
-		//result = String.valueOf((int)engine.eval(newstr));
-		showText.setText(result);
+		//加个判断，判断old里有没有字符  .
+		if(old.indexOf(".")>0) {
+			//System.out.println("这是浮点型");
+			result = String.valueOf((double)engine.eval(newstr));
+			
+		}else {
+			//System.out.println("这是整型");
+			result = String.valueOf((int)engine.eval(newstr));
+		}
 		
+		
+		showText.setText(result);
 	}
 	
 	//想去添加的定时器
@@ -154,6 +161,7 @@ public class JXQTest extends JFrame implements ActionListener{
 			//计算的逻辑
 			//可以在此代码块里去写，也可以另起一个方法（推荐）
 			try {
+				flag = !flag;  //扳开关
 				this.getResult();
 			} catch (Exception e) {
 				// TODO Auto-generated catch block
@@ -169,7 +177,28 @@ public class JXQTest extends JFrame implements ActionListener{
 			//start
 			this.startTime();
 			
-		}else if ("<—".equals(btnStr)){
+		}else if ("<—".equals(btnStr)) {
+			
+			//System.out.println(2.00-1.10);
+			//退格
+			//获得现在在输入框里的字符
+			String oldStr = showText.getText();
+			//获得当前字符串的长度
+			int len = oldStr.length();
+			
+			//判断  退格到最后一个的时候再按没有用
+			if(len == 0) {
+				//System.out.println("里面没有东西了");
+				showText.setText("");
+				return;
+			}
+			
+			//根据当前字符串的长度选择性的截取   长度-1
+			int reallen = len-1;
+			//截取字符串  
+			String newStr = oldStr.substring(0,reallen);
+			//放到text上
+			showText.setText(newStr);
 			
 		}else {
 			showText.setText(showText.getText()+btnStr);
@@ -187,7 +216,14 @@ public class JXQTest extends JFrame implements ActionListener{
 			JButton btn = (JButton)source;
 			String btnstr = btn.getText();
 			//拼接字符串
-			this.appendBtnText(showText,btnstr);
+			//把开关扳回来
+			if(flag==false) {
+				this.appendBtnText(showText, btnstr);
+			}else {
+				showText.setText("");
+				this.appendBtnText(showText, btnstr);
+				flag=!flag;
+			}
 		}
 		
 		
